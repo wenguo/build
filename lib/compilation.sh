@@ -271,9 +271,10 @@ compile_uboot()
 	[[ -f Licenses/README ]] && cp Licenses/README "${SRC}/.tmp/${uboot_name}/usr/lib/u-boot/LICENSE"
 	[[ -n $atftempdir && -f $atftempdir/license.md ]] && cp "${atftempdir}/license.md" "${SRC}/.tmp/${uboot_name}/usr/lib/u-boot/LICENSE.atf"
 
-	display_alert "Building deb" "${uboot_name}.deb" "info"
 	cp -r "${SRC}/.tmp/${uboot_name}" "${HOME}"
-	display_alert "copy folder" "${SRC}/.tmp/${uboot_name}" "${HOME}"
+	display_alert "Copy folder" "${SRC}/.tmp/${uboot_name}" "${HOME}"
+
+	display_alert "Building deb" "${uboot_name}.deb" "info"
 	fakeroot dpkg-deb -b "${SRC}/.tmp/${uboot_name}" "${SRC}/.tmp/${uboot_name}.deb" >> "${DEST}"/debug/output.log 2>&1
 	rm -rf "${SRC}/.tmp/${uboot_name}"
 	[[ -n $atftempdir ]] && rm -rf "${atftempdir}"
