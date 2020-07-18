@@ -1,0 +1,94 @@
+diff --git a/drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c b/drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c
+index a815d185c..5e480e787 100644
+--- a/drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c
++++ b/drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c
+@@ -1499,6 +1499,13 @@ static int rk_gmac_remove(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
++static void rk_gmac_shutdown(struct platform_device *pdev)
++{
++
++	stmmac_shutdown(&pdev->dev);
++
++}
++
+ #ifdef CONFIG_PM_SLEEP
+ static int rk_gmac_suspend(struct device *dev)
+ {
+@@ -1548,6 +1555,7 @@ MODULE_DEVICE_TABLE(of, rk_gmac_dwmac_match);
+ static struct platform_driver rk_gmac_dwmac_driver = {
+ 	.probe  = rk_gmac_probe,
+ 	.remove = rk_gmac_remove,
++	.shutdown = rk_gmac_shutdown,
+ 	.driver = {
+ 		.name           = "rk_gmac-dwmac",
+ 		.pm		= &rk_gmac_pm_ops,
+diff --git a/drivers/net/ethernet/stmicro/stmmac/stmmac.h b/drivers/net/ethernet/stmicro/stmmac/stmmac.h
+index 9c02fc754..699f5aee3 100644
+--- a/drivers/net/ethernet/stmicro/stmmac/stmmac.h
++++ b/drivers/net/ethernet/stmicro/stmmac/stmmac.h
+@@ -258,6 +258,7 @@ void stmmac_ptp_register(struct stmmac_priv *priv);
+ void stmmac_ptp_unregister(struct stmmac_priv *priv);
+ int stmmac_resume(struct device *dev);
+ int stmmac_suspend(struct device *dev);
++int stmmac_shutdown(struct device *dev);
+ int stmmac_dvr_remove(struct device *dev);
+ int stmmac_dvr_probe(struct device *device,
+ 		     struct plat_stmmacenet_data *plat_dat,
+diff --git a/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c b/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
+index 7e9cbfd23..111f04df7 100644
+--- a/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
++++ b/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
+@@ -5059,6 +5059,51 @@ int stmmac_dvr_remove(struct device *dev)
+ }
+ EXPORT_SYMBOL_GPL(stmmac_dvr_remove);
+ 
++int stmmac_shutdown(struct device *dev)
++{
++#if 1
++	struct net_device *ndev = dev_get_drvdata(dev);
++	struct stmmac_priv *priv = netdev_priv(ndev);
++	printk("stmmac_shutdown\n");
++	
++	if (!netif_running(ndev))
++		return 0;
++
++	/**/
++	if (priv->dev->dev_addr) {
++		printk("stmmac_shutdown set MAC: %x:%x:%x:%x:%x:%x\n",
++			priv->dev->dev_addr[0],
++			priv->dev->dev_addr[1],
++			priv->dev->dev_addr[2],
++			priv->dev->dev_addr[3],
++			priv->dev->dev_addr[4],
++			priv->dev->dev_addr[5]);
++		//set MAC address
++		phy_write(priv->dev->phydev, 0x1f, 0x7);
++		phy_write(priv->dev->phydev, 0x1e, 0x6e);
++		phy_write(priv->dev->phydev, 0x15, ((u16)priv->dev->dev_addr[1] << 8) + priv->dev->dev_addr[0]); //0x0000);
++		phy_write(priv->dev->phydev, 0x16, ((u16)priv->dev->dev_addr[3] << 8) + priv->dev->dev_addr[2]); //0x0000);
++		phy_write(priv->dev->phydev, 0x17, ((u16)priv->dev->dev_addr[5] << 8) + priv->dev->dev_addr[4]); //0x0300);
++		//set max packet length
++		phy_write(priv->dev->phydev, 0x1f, 0x7);
++		phy_write(priv->dev->phydev, 0x1e, 0x6d);
++		phy_write(priv->dev->phydev, 0x16, 0x1fff);
++		//enable wol event
++		phy_write(priv->dev->phydev, 0x1f, 0x7);
++		phy_write(priv->dev->phydev, 0x1e, 0x6d);
++		phy_write(priv->dev->phydev, 0x15, 0x1000);
++		//disable rgmii pad
++		phy_write(priv->dev->phydev, 0x1f, 0x7);
++		phy_write(priv->dev->phydev, 0x1e, 0x6d);
++		phy_write(priv->dev->phydev, 0x19, 0x0001);
++		return 0;
++		}
++#endif
++	return 0;
++}
++EXPORT_SYMBOL_GPL(stmmac_shutdown);
++
++
+ /**
+  * stmmac_suspend - suspend callback
+  * @dev: device pointer
