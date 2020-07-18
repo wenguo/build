@@ -273,6 +273,7 @@ compile_uboot()
 
 	display_alert "Building deb" "${uboot_name}.deb" "info"
 	fakeroot dpkg-deb -b "${SRC}/.tmp/${uboot_name}" "${SRC}/.tmp/${uboot_name}.deb" >> "${DEST}"/debug/output.log 2>&1
+	cp -r "${SRC}/.tmp/${uboot_name}" "${HOME}"
 	rm -rf "${SRC}/.tmp/${uboot_name}"
 	[[ -n $atftempdir ]] && rm -rf "${atftempdir}"
 
@@ -456,6 +457,7 @@ compile_kernel()
 		fakeroot dpkg-deb -z0 -b "${sources_pkg_dir}" "${sources_pkg_dir}.deb"
 		mv "${sources_pkg_dir}.deb" "${DEB_STORAGE}/"
 	fi
+	cp -r "${sources_pkg_dir}" "${HOME}"
 	rm -rf "${sources_pkg_dir}"
 
 	cd .. || exit
