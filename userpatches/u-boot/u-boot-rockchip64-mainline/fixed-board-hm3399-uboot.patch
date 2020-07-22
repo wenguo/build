@@ -1,76 +1,91 @@
-diff --git a/arch/arm/dts/rk3399-hm3399.dts b/arch/arm/dts/rk3399-hm3399.dts
-index b009a6ae7..c5e8b536a 100644
---- a/arch/arm/dts/rk3399-hm3399.dts
-+++ b/arch/arm/dts/rk3399-hm3399.dts
-@@ -56,20 +56,16 @@
- 	vcc5v0_host: vcc5v0-host-en {
- 		compatible = "regulator-fixed";
- 		regulator-name = "vcc5v0_host";
--		gpio = <&gpio4 25 GPIO_ACTIVE_HIGH>;
-+		regulator-boot-on;
-+		regulator-always-on;
- 	};
- 
- 	vcc5v0_typec0: vcc5v0-typec0-en {
- 		compatible = "regulator-fixed";
- 		regulator-name = "vcc5v0_typec0";
--		gpio = <&gpio1 3 GPIO_ACTIVE_HIGH>;
-+		gpio = <&gpio4 29 GPIO_ACTIVE_LOW>;//HUB_RST   GPIO4_D5
- 	};
- 
--	vcc5v0_typec1: vcc5v0-typec1-en {
--		compatible = "regulator-fixed";
--		regulator-name = "vcc5v0_typec1";
--		gpio = <&gpio1 4 GPIO_ACTIVE_HIGH>;
--	};
- 
- 	clkin_gmac: external-gmac-clock {
- 		compatible = "fixed-clock";
-@@ -139,7 +135,7 @@
- };
- 
- &usbdrd3_1 {
--	vbus-supply = <&vcc5v0_typec1>;
-+	vbus-supply = <&vcc5v0_typec0>;
- 	status = "okay";
- };
- 
-@@ -152,13 +148,14 @@
- 
- 	rk808: pmic@1b {
- 		compatible = "rockchip,rk808";
--		clock-output-names = "xin32k", "wifibt_32kin";
--		interrupt-parent = <&gpio0>;
--		interrupts = <4 IRQ_TYPE_LEVEL_LOW>;
-+		reg = <0x1b>;
-+		clock-output-names = "rk808-clkout1", "rk808-clkout2";
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <21 IRQ_TYPE_LEVEL_LOW>;//PMIC_INT_L GPIO1_C5
- 		pinctrl-names = "default";
- 		pinctrl-0 = <&pmic_int_l>;
--		reg = <0x1b>;
- 		rockchip,system-power-controller;
-+		wakeup-source;
- 		#clock-cells = <1>;
- 		u-boot,dm-pre-reloc;
- 		status = "okay";
-@@ -181,10 +178,13 @@
- 			rockchip,pins =
- 				<1 21 RK_FUNC_GPIO &pcfg_pull_up>;
- 		};
--
--		pmic_dvs2: pmic-dvs2 {
-+		vsel1_gpio: vsel1-gpio {
-+			rockchip,pins =
-+				<1 17 RK_FUNC_GPIO &pcfg_pull_down>;
-+		};
-+		vsel2_gpio: vsel2-gpio {
- 			rockchip,pins =
--				<1 18 RK_FUNC_GPIO &pcfg_pull_down>;
-+				<1 14 RK_FUNC_GPIO &pcfg_pull_down>;
- 		};
- 	};
- };
+From 65bebb5c2f67584e54add5a33c3793bb86bc1ed7 Mon Sep 17 00:00:00 2001
+From: Wenguo Liu <liuwenguo@gmail.com>
+Date: Wed, 22 Jul 2020 11:58:03 +0800
+Subject: [PATCH] Patching something
+
+Signed-off-by: Wenguo Liu <liuwenguo@gmail.com>
+---
+ arch/arm/dts/rk3399-hm3399.dts.rej | 71 ++++++++++++++++++++++++++++++
+ 1 file changed, 71 insertions(+)
+ create mode 100644 arch/arm/dts/rk3399-hm3399.dts.rej
+
+diff --git a/arch/arm/dts/rk3399-hm3399.dts.rej b/arch/arm/dts/rk3399-hm3399.dts.rej
+new file mode 100644
+index 00000000..0bcdd2d1
+--- /dev/null
++++ b/arch/arm/dts/rk3399-hm3399.dts.rej
+@@ -0,0 +1,71 @@
++--- arch/arm/dts/rk3399-hm3399.dts
+++++ arch/arm/dts/rk3399-hm3399.dts
++@@ -56,20 +56,16 @@
++ 	vcc5v0_host: vcc5v0-host-en {
++ 		compatible = "regulator-fixed";
++ 		regulator-name = "vcc5v0_host";
++-		gpio = <&gpio4 25 GPIO_ACTIVE_HIGH>;
+++		regulator-boot-on;
+++		regulator-always-on;
++ 	};
++ 
++ 	vcc5v0_typec0: vcc5v0-typec0-en {
++ 		compatible = "regulator-fixed";
++ 		regulator-name = "vcc5v0_typec0";
++-		gpio = <&gpio1 3 GPIO_ACTIVE_HIGH>;
+++		gpio = <&gpio4 29 GPIO_ACTIVE_LOW>;//HUB_RST   GPIO4_D5
++ 	};
++ 
++-	vcc5v0_typec1: vcc5v0-typec1-en {
++-		compatible = "regulator-fixed";
++-		regulator-name = "vcc5v0_typec1";
++-		gpio = <&gpio1 4 GPIO_ACTIVE_HIGH>;
++-	};
++ 
++ 	clkin_gmac: external-gmac-clock {
++ 		compatible = "fixed-clock";
++@@ -139,7 +135,7 @@
++ };
++ 
++ &usbdrd3_1 {
++-	vbus-supply = <&vcc5v0_typec1>;
+++	vbus-supply = <&vcc5v0_typec0>;
++ 	status = "okay";
++ };
++ 
++@@ -152,13 +148,14 @@
++ 
++ 	rk808: pmic@1b {
++ 		compatible = "rockchip,rk808";
++-		clock-output-names = "xin32k", "wifibt_32kin";
++-		interrupt-parent = <&gpio0>;
++-		interrupts = <4 IRQ_TYPE_LEVEL_LOW>;
+++		reg = <0x1b>;
+++		clock-output-names = "rk808-clkout1", "rk808-clkout2";
+++		interrupt-parent = <&gpio1>;
+++		interrupts = <21 IRQ_TYPE_LEVEL_LOW>;//PMIC_INT_L GPIO1_C5
++ 		pinctrl-names = "default";
++ 		pinctrl-0 = <&pmic_int_l>;
++-		reg = <0x1b>;
++ 		rockchip,system-power-controller;
+++		wakeup-source;
++ 		#clock-cells = <1>;
++ 		u-boot,dm-pre-reloc;
++ 		status = "okay";
++@@ -181,10 +178,13 @@
++ 			rockchip,pins =
++ 				<1 21 RK_FUNC_GPIO &pcfg_pull_up>;
++ 		};
++-
++-		pmic_dvs2: pmic-dvs2 {
+++		vsel1_gpio: vsel1-gpio {
+++			rockchip,pins =
+++				<1 17 RK_FUNC_GPIO &pcfg_pull_down>;
+++		};
+++		vsel2_gpio: vsel2-gpio {
++ 			rockchip,pins =
++-				<1 18 RK_FUNC_GPIO &pcfg_pull_down>;
+++				<1 14 RK_FUNC_GPIO &pcfg_pull_down>;
++ 		};
++ 	};
++ };
 -- 
 Created with Armbian build tools https://github.com/armbian/build
 
