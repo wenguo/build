@@ -1,0 +1,97 @@
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index 0a5924919..6a2b8e2a3 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -1065,6 +1065,11 @@ config MFD_RK808
+ 	  This driver provides common support for accessing the device
+ 	  through I2C interface. The device supports multiple sub-devices
+ 	  including interrupts, RTC, LDO & DCDC regulators, and onkey.
++	  
++config SEND_POWEROFF_SIGNAL
++	bool "send power signal when poweroff"
++	help
++	  If you say yes here you get support for the function
+ 
+ config MFD_RN5T618
+ 	tristate "Ricoh RN5T567/618 PMIC"
+diff --git a/drivers/mfd/rk808.c b/drivers/mfd/rk808.c
+index d109b9f14..0fc0524fb 100644
+--- a/drivers/mfd/rk808.c
++++ b/drivers/mfd/rk808.c
+@@ -19,6 +19,8 @@
+ #include <linux/module.h>
+ #include <linux/of_device.h>
+ #include <linux/regmap.h>
++#include <linux/of_gpio.h>
++#include <linux/of_platform.h>
+ 
+ struct rk808_reg_data {
+ 	int addr;
+@@ -469,6 +471,17 @@ static void rk808_pm_power_off(void)
+ 	default:
+ 		return;
+ 	}
++	
++	
++#ifdef CONFIG_SEND_POWEROFF_SIGNAL //add by zfanji
++	dev_info(&rk808_i2c_client->dev, "send poweroff_signal~~~ %d    \n",rk808->active_low ? 0 : 1);
++	gpio_set_value(rk808->poweroff_signal, rk808->active_low ? 0 : 1);
++	mdelay(1000);
++	gpio_set_value(rk808->poweroff_signal, rk808->active_low ? 1 : 0);
++
++	dev_info(&rk808_i2c_client->dev, "send poweroff_signal~~~ %d    \n",rk808->active_low ? 1 : 0);
++#endif	
++
+ 	ret = regmap_update_bits(rk808->regmap, reg, bit, bit);
+ 	if (ret)
+ 		dev_err(&rk808_i2c_client->dev, "Failed to shutdown device!\n");
+@@ -643,6 +656,20 @@ static int rk808_probe(struct i2c_client *client,
+ 		rk808_i2c_client = client;
+ 		pm_power_off = rk808_pm_power_off;
+ 	}
++	
++#ifdef CONFIG_SEND_POWEROFF_SIGNAL //add by zfanji
++	rk808->poweroff_signal = of_get_named_gpio_flags(np, "poweroff_signal-gpios", 0, NULL);
++
++	rk808->active_low = of_property_read_bool(np,"poweroff,signal-active-low");
++	
++	ret = gpio_request(rk808->poweroff_signal, "poweroff signal");
++	if (ret) {
++		dev_info(&client->dev, "poweroff signal gpio request failed.\n");
++	}else{
++		dev_info(&client->dev, "poweroff signal gpio request ok... \n");
++		gpio_direction_output(rk808->poweroff_signal, rk808->active_low ? 1 : 0);
++	}
++#endif
+ 
+ 	return 0;
+ 
+diff --git a/drivers/rtc/rtc-hym8563.c b/drivers/rtc/rtc-hym8563.c
+index 0fb79c4af..dde24c3a4 100644
+--- a/drivers/rtc/rtc-hym8563.c
++++ b/drivers/rtc/rtc-hym8563.c
+@@ -172,6 +172,9 @@ static int hym8563_rtc_alarm_irq_enable(struct device *dev,
+ 		data |= HYM8563_CTL2_AIE;
+ 	else
+ 		data &= ~HYM8563_CTL2_AIE;
++		
++	data &= ~HYM8563_CTL2_TIE;
++	data &= ~HYM8563_CTL2_AF;
+ 
+ 	return i2c_smbus_write_byte_data(client, HYM8563_CTL2, data);
+ };
+diff --git a/include/linux/mfd/rk808.h b/include/linux/mfd/rk808.h
+index e07f6e61c..6ebb4535e 100644
+--- a/include/linux/mfd/rk808.h
++++ b/include/linux/mfd/rk808.h
+@@ -620,5 +620,10 @@ struct rk808 {
+ 	long				variant;
+ 	const struct regmap_config	*regmap_cfg;
+ 	const struct regmap_irq_chip	*regmap_irq_chip;
++	
++#ifdef CONFIG_SEND_POWEROFF_SIGNAL //add by zfanji
++	int poweroff_signal;
++	int active_low;
++#endif
+ };
+ #endif /* __LINUX_REGULATOR_RK808_H */

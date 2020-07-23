@@ -68,7 +68,7 @@ index 000000000..53bb0b390
 +		}else{
 +			ret = devm_gpio_request(&pdev->dev, gpio, "pwr_led_en_gpio");
 +			if(ret){
-+				dev_err(&pdev->dev, "%s,%d,failed to request GPIO%d for hub_rst\n",__func__,__LINE__,gpio);
++				dev_err(&pdev->dev, "%s,%d,failed to request GPIO%d for pwr_led_en\n",__func__,__LINE__,gpio);
 +				return -ENODEV;
 +			}
 +			gpio_direction_output(gpio, en_value);
