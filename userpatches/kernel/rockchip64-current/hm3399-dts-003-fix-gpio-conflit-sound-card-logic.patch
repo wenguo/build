@@ -1,0 +1,325 @@
+From d25bd36c3d2a4ba0e052086edbcff5aecbb5b6a8 Mon Sep 17 00:00:00 2001
+From: Wenguo Liu <liuwenguo@gmail.com>
+Date: Wed, 22 Jul 2020 11:45:26 +0800
+Subject: [PATCH] dts-sound-card-gpio-conflict
+
+Signed-off-by: Wenguo Liu <liuwenguo@gmail.com>
+---
+ .../arm64/boot/dts/rockchip/rk3399-hm3399.dts | 76 ++++++++++++----
+ .../boot/dts/rockchip/rk3399-hm3399.dtsi      | 87 +++++++++++++++----
+ 2 files changed, 125 insertions(+), 38 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
+index 41e8767a9..9d4a64036 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
+@@ -68,13 +68,18 @@ panel_in_edp: endpoint {
+ 		};
+ 	};
+ 
+-	es8388_sound{
+-		compatible = "everest,es8388", "everest,es8328";
+-
+-		clocks = <&cru SCLK_I2S_8CH_OUT>;
+-		clock-names = "mclk";
++	es8388_sound {
++		status = "okay";
++		compatible = "simple-audio-card";
++		pinctrl-names = "default";
++		pinctrl-0 = <&hpdet_int>;
+ 
++		simple-audio-card,name = "rockchip,es8388-codec";
++		simple-audio-card,format = "i2s";
++		simple-audio-card,mclk-fs = <256>;
+ 		
++		simple-audio-card,hp-det-gpio =  <&gpio4 RK_PD0 GPIO_ACTIVE_HIGH>;//insert=GPIO_ACTIVE_HIGH  
++
+ 		simple-audio-card,cpu {
+ 			sound-dai = <&i2s0>;
+ 			system-clock-frequency = <11289600>;
+@@ -84,6 +89,42 @@ simple-audio-card,codec {
+ 			system-clock-frequency = <11289600>;
+ 		};
+ 	};
++	
++	
++	dw_hdmi_audio: dw-hdmi-audio {
++		status = "disable";
++		compatible = "rockchip,dw-hdmi-audio";
++		#sound-dai-cells = <0>;
++	};
++
++	hdmi_sound: hdmi-sound {
++		status = "okay";
++	};
++
++        hdmi_dp_sound: hdmi-dp-sound {
++                status = "okay";
++                compatible = "rockchip,rk3399-hdmi-dp";
++                rockchip,cpu = <&i2s2>;
++                rockchip,codec = <&hdmi>, <&cdn_dp>;
++        };
++
++	spdif-sound {
++		status = "disable";
++		compatible = "simple-audio-card";
++		simple-audio-card,name = "ROCKCHIP,SPDIF";
++		simple-audio-card,cpu {
++			sound-dai = <&spdif>;
++		};
++		simple-audio-card,codec {
++			sound-dai = <&spdif_out>;
++		};
++	};
++
++	spdif_out: spdif-out {
++		status = "disable";
++		compatible = "linux,spdif-dit";
++		#sound-dai-cells = <0>;
++	};
+ 
+ 	sdio_pwrseq: sdio-pwrseq {
+ 		compatible = "mmc-pwrseq-simple";
+@@ -148,6 +189,7 @@ work_led: work {
+     	};
+ };
+ 
++
+ &edp {
+ 	status = "disabled";
+ 
+@@ -176,15 +218,10 @@ es8388: es8388@10 {
+ 		reg = <0x10>;
+ 		clocks = <&cru SCLK_I2S_8CH_OUT>;
+ 		clock-names = "mclk";
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&i2s_8ch_mclk>;
+ 		AVDD-supply = <&vcca3v0_codec>;
+ 		DVDD-supply = <&vcca3v0_codec>;
+ 		HPVDD-supply = <&vcca3v0_codec>;
+ 		PVDD-supply = <&vcca3v0_codec>;
+-    	        //pinctrl-0 = <&i2s_8ch_mclk>;
+-		//spk-con-gpio = <&gpio1 1 GPIO_ACTIVE_LOW>;
+-		//hp-det-gpio = <&gpio4 24 GPIO_ACTIVE_HIGH>;//insert=GPIO_ACTIVE_HIGH  
+ 
+ 		status = "okay";
+ 	};
+@@ -200,19 +237,15 @@ fusb0: fusb30x@22 {
+ 		compatible = "fairchild,fusb302";
+ 		reg = <0x22>;
+ 		pinctrl-names = "default";
+-		pinctrl-0 = <&fusb0_int &vcc5v0_typec0_en>;
++		pinctrl-0 = <&fusb0_int>;
+ 		int-n-gpios = <&gpio1 RK_PA2 GPIO_ACTIVE_HIGH>;//GPIO1_A2
+ 		vbus-5v-gpios = <&gpio1 RK_PC4 GPIO_ACTIVE_HIGH>;//GPIO1_C4
+ 		status = "okay";
+ 	};
++	
+ };
+ 
+-&i2s0 {
+-	rockchip,playback-channels = <8>;
+-	rockchip,capture-channels = <8>;
+-	rockchip,i2s-broken-burst-len;
+-	status = "okay";
+-};
++
+ 
+ &pcie_phy {
+ 	status = "okay";
+@@ -243,9 +276,10 @@ es8388-gpios{
+ 		hpdet_int: hpdet-int {
+ 			rockchip,pins = <4 RK_PD0 RK_FUNC_GPIO &pcfg_pull_none>;
+ 		};
++		
+ 	};
+ 	
+-	i2s1 {
++	i2s0 {
+ 		i2s_8ch_mclk: i2s-8ch-mclk {
+ 			rockchip,pins = <4 RK_PA0 RK_FUNC_1 &pcfg_pull_none>;
+ 		};
+@@ -285,5 +319,9 @@ &sdio0 {
+ };
+ 
+ &spdif {
+-	status = "okay";
++	status = "disable";
++	pinctrl-0 = <&spdif_bus>;
++	i2c-scl-rising-time-ns = <450>;
++	i2c-scl-falling-time-ns = <15>;
++	#sound-dai-cells = <0>;
+ };
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dtsi
+index 1a8178ebc..4c7bcd8fb 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dtsi
+@@ -83,7 +83,6 @@ vcc3v3_sys: vcc3v3-sys {
+ 
+ 	vcc5v0_host: vcc5v0-host-regulator {
+ 		compatible = "regulator-fixed";
+-		enable-active-high;
+ 		gpio = <&gpio4 RK_PD5 GPIO_ACTIVE_LOW>;//HUB_RST   GPIO4_D5
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&vcc5v0_host_en>;
+@@ -95,12 +94,17 @@ vcc5v0_host: vcc5v0-host-regulator {
+ 	vcc5v0_typec0: vcc5v0-typec0-regulator {
+ 		compatible = "regulator-fixed";
+ 		enable-active-high;
+-		gpio = <&gpio1 RK_PC4 GPIO_ACTIVE_LOW>;//HUB_RST   GPIO1_C4
++		gpio = <&gpio1 RK_PC4 GPIO_ACTIVE_HIGH>;//HUB_RST   GPIO1_C4
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&vcc5v0_typec0_en>;
+ 		regulator-name = "vcc5v0_typec0";
+ 		vin-supply = <&vcc_sys>;
++		
++		regulator-state-mem {
++			regulator-off-in-suspend;
++		};
+ 	};
++	
+ 
+ 	vcc_sys: vcc-sys {
+ 		compatible = "regulator-fixed";
+@@ -208,6 +212,7 @@ &hdmi_sound {
+ 	status = "okay";
+ };
+ 
++
+ &i2c0 {
+ 	clock-frequency = <400000>;
+ 	i2c-scl-rising-time-ns = <168>;
+@@ -229,18 +234,18 @@ rk808: pmic@1b {
+ 		poweroff_signal-gpios = <&gpio0 11 GPIO_ACTIVE_LOW>;//PWR_EN  GPIO0_B3
+ 		poweroff,signal-active-low;
+ 
+-		vcc1-supply = <&vcc_sys>;
+-		vcc2-supply = <&vcc_sys>;
+-		vcc3-supply = <&vcc_sys>;
+-		vcc4-supply = <&vcc_sys>;
+-		vcc6-supply = <&vcc_sys>;
+-		vcc7-supply = <&vcc_sys>;
++		vcc1-supply = <&vcc3v3_sys>;
++		vcc2-supply = <&vcc3v3_sys>;
++		vcc3-supply = <&vcc3v3_sys>;
++		vcc4-supply = <&vcc3v3_sys>;
++		vcc6-supply = <&vcc3v3_sys>;
++		vcc7-supply = <&vcc3v3_sys>;
+ 		vcc8-supply = <&vcc3v3_sys>;
+-		vcc9-supply = <&vcc_sys>;
+-		vcc10-supply = <&vcc_sys>;
+-		vcc11-supply = <&vcc_sys>;
++		vcc9-supply = <&vcc3v3_sys>;
++		vcc10-supply = <&vcc3v3_sys>;
++		vcc11-supply = <&vcc3v3_sys>;
+ 		vcc12-supply = <&vcc3v3_sys>;
+-		vddio-supply = <&vcc1v8_pmu>;
++		vddio-supply = <&vcc_3v0>;
+ 
+ 		regulators {
+ 			vdd_center: DCDC_REG1 {
+@@ -442,7 +447,7 @@ regulator-state-mem {
+ 		};
+ 	};
+ 
+-    hym8563: hym8563@51 {
++        hym8563: hym8563@51 {
+             compatible = "haoyu,hym8563";
+             reg = <0x51>;
+             #clock-cells = <0>;
+@@ -450,11 +455,31 @@ hym8563: hym8563@51 {
+ };
+ 
+ &i2c3 {
+-	i2c-scl-rising-time-ns = <450>;
+-	i2c-scl-falling-time-ns = <15>;
+ 	status = "okay";
+ };
+ 
++
++&i2s0 {
++	assigned-clocks = <&cru SCLK_I2SOUT_SRC>;
++	assigned-clock-parents = <&cru SCLK_I2S0_8CH>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2s_8ch_mclk>,<&i2s0_2ch_bus>;
++	rockchip,playback-channels = <8>;
++	rockchip,capture-channels = <8>;
++	#sound-dai-cells = <0>;
++	status = "okay";
++};
++
++
++&i2s1 {
++	status = "okay";
++	rockchip,i2s-broken-burst-len;
++	rockchip,playback-channels = <8>;
++	rockchip,capture-channels = <8>;
++	#sound-dai-cells = <0>;
++};
++
++
+ &i2s2 {
+ 	status = "okay";
+ };
+@@ -530,10 +555,33 @@ rst4g_pin: rst4g-pin {
+ 			rockchip,pins = <4 RK_PD4 RK_FUNC_GPIO &pcfg_pull_up>;
+ 		};
+ 	};
++	
++	spdif {
++		spdif_bus: spdif-bus {
++			rockchip,pins =
++				<4 RK_PD4 1 &pcfg_pull_none>;
++		};
++	
++		spdif_bus_1: spdif-bus-1 {
++			rockchip,pins =
++				<3 RK_PC0 3 &pcfg_pull_none>;
++		};
++	};
++	
++	uarthdcp {
++		uarthdcp_xfer: uarthdcp-xfer {
++			rockchip,pins =
++				<4 RK_PC6 2 &pcfg_pull_none>;
++		};
++	};
+ };
+ 
+ &pwm0 {
+-	status = "okay";
++	status = "disabled";
++};
++
++&pwm1 {
++	status = "disabled";
+ };
+ 
+ &pwm2 {
+@@ -541,7 +589,7 @@ &pwm2 {
+ };
+ 
+ &pwm3 {
+-	status = "okay";
++	status = "disabled";
+ 	pinctrl-names = "default";
+ 	interrupts = <GIC_SPI 61 IRQ_TYPE_LEVEL_HIGH 0>;
+ 	compatible = "rockchip,remotectl-pwm";
+@@ -722,11 +770,12 @@ spi_wk2xxx: spi_wk2xxx@0{
+ 		spi-max-frequency = <10000000>;
+ 		//spi-cpha;      not support
+ 		//spi-cpol; 	//if the property is here it is 1:clk is high, else 0:clk is low  when idle
+-        reset-gpio = <&gpio2 6 GPIO_ACTIVE_HIGH>;//gpio2_a6  todo
+-        irq_gpio = <&gpio2 7 IRQ_TYPE_EDGE_FALLING>;//gpio2_a6
++        	reset-gpio = <&gpio2 6 GPIO_ACTIVE_HIGH>;//gpio2_a6  todo
++        	irq_gpio = <&gpio2 7 IRQ_TYPE_EDGE_FALLING>;//gpio2_a6
+ 	};
+ };
+ 
++
+ &usb_host0_ehci {
+ 	status = "okay";
+ };
+-- 
+Created with Armbian build tools https://github.com/armbian/build
+

@@ -1,0 +1,39 @@
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
+index 4c5c13c7f..6f50c8148 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
+@@ -79,7 +79,20 @@ es8388_sound {
+ 		simple-audio-card,mclk-fs = <256>;
+ 		
+ 		simple-audio-card,hp-det-gpio =  <&gpio4 RK_PD0 GPIO_ACTIVE_HIGH>;//insert=GPIO_ACTIVE_HIGH  
+-
++		
++		simple-audio-card,widgets =
++			"Microphone", "Mic Jack",
++			"Headphone", "Headphone Jack",
++			"Speaker", "External Speaker";
++		simple-audio-card,routing =
++			"Mic Jack", "Mic Bias",
++			"LINPUT1", "Mic Jack",
++			"RINPUT1", "Mic Jack",
++			"Headphone Jack", "LOUT2",
++			"Headphone Jack", "ROUT2",
++			"External Speaker", "LOUT1",
++			"External Speaker", "ROUT1";
++			
+ 		simple-audio-card,cpu {
+ 			sound-dai = <&i2s0>;
+ 			system-clock-frequency = <11289600>;
+diff --git a/sound/soc/rockchip/rockchip_i2s.c b/sound/soc/rockchip/rockchip_i2s.c
+index dcee123b0..a2e056331 100644
+--- a/sound/soc/rockchip/rockchip_i2s.c
++++ b/sound/soc/rockchip/rockchip_i2s.c
+@@ -450,7 +450,7 @@ static int rockchip_i2s_set_sysclk(struct snd_soc_dai *cpu_dai, int clk_id,
+ 
+ 	ret = clk_set_rate(i2s->mclk, freq);
+ 	if (ret)
+-		dev_err(i2s->dev, "Fail to set mclk %d\n", ret);
++		dev_err(i2s->dev, "Fail to set mclk %d %d\n", ret, freq);
+ 
+ 	return ret;
+ }
