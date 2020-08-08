@@ -1,0 +1,26 @@
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
+index 6f50c8148..c6a3ccff0 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
+@@ -78,7 +78,7 @@ es8388_sound {
+ 		simple-audio-card,format = "i2s";
+ 		simple-audio-card,mclk-fs = <256>;
+ 		
+-		simple-audio-card,hp-det-gpio =  <&gpio4 RK_PD0 GPIO_ACTIVE_HIGH>;//insert=GPIO_ACTIVE_HIGH  
++		#simple-audio-card,hp-det-gpio =  <&gpio4 RK_PD0 GPIO_ACTIVE_HIGH>;//insert=GPIO_ACTIVE_HIGH  
+ 		
+ 		simple-audio-card,widgets =
+ 			"Microphone", "Mic Jack",
+diff --git a/sound/soc/soc-dapm.c b/sound/soc/soc-dapm.c
+index c0aa64ff8..deada1d5f 100644
+--- a/sound/soc/soc-dapm.c
++++ b/sound/soc/soc-dapm.c
+@@ -4741,7 +4741,7 @@ int snd_soc_dapm_ignore_suspend(struct snd_soc_dapm_context *dapm,
+ 	struct snd_soc_dapm_widget *w = dapm_find_widget(dapm, pin, false);
+ 
+ 	if (!w) {
+-		dev_err(dapm->dev, "ASoC: unknown pin %s\n", pin);
++		/*dev_err(dapm->dev, "ASoC: unknown pin %s\n", pin);*/
+ 		return -EINVAL;
+ 	}
+ 
