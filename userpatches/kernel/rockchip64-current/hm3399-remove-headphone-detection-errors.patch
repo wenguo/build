@@ -1,7 +1,25 @@
 diff --git a/sound/soc/soc-dapm.c b/sound/soc/soc-dapm.c
-index c0aa64ff8..deada1d5f 100644
+index deada1d5f..3eb8d4a03 100644
 --- a/sound/soc/soc-dapm.c
 +++ b/sound/soc/soc-dapm.c
+@@ -2554,7 +2554,7 @@ static int snd_soc_dapm_set_pin(struct snd_soc_dapm_context *dapm,
+ 	dapm_assert_locked(dapm);
+ 
+ 	if (!w) {
+-		dev_err(dapm->dev, "ASoC: DAPM unknown pin %s\n", pin);
++		/*dev_err(dapm->dev, "ASoC: DAPM unknown pin %s\n", pin);*/
+ 		return -EINVAL;
+ 	}
+ 
+@@ -4560,7 +4560,7 @@ int snd_soc_dapm_force_enable_pin_unlocked(struct snd_soc_dapm_context *dapm,
+ 	struct snd_soc_dapm_widget *w = dapm_find_widget(dapm, pin, true);
+ 
+ 	if (!w) {
+-		dev_err(dapm->dev, "ASoC: unknown pin %s\n", pin);
++		/*dev_err(dapm->dev, "ASoC: unknown pin %s\n", pin);*/
+ 		return -EINVAL;
+ 	}
+ 
 @@ -4741,7 +4741,7 @@ int snd_soc_dapm_ignore_suspend(struct snd_soc_dapm_context *dapm,
  	struct snd_soc_dapm_widget *w = dapm_find_widget(dapm, pin, false);
  
