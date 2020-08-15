@@ -1,0 +1,33 @@
+From e5788bcbe0a82803094b94b0287a60bb2b4e0c3c Mon Sep 17 00:00:00 2001
+From: Wenguo Liu <liuwenguo@gmail.com>
+Date: Fri, 14 Aug 2020 22:13:07 +0800
+Subject: [PATCH 2/2] fixed hm3399 dtb compliation
+
+---
+ arch/arm64/boot/dts/rockchip/Makefile | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/Makefile b/arch/arm64/boot/dts/rockchip/Makefile
+index 3c4fcb21..682be177 100644
+--- a/arch/arm64/boot/dts/rockchip/Makefile
++++ b/arch/arm64/boot/dts/rockchip/Makefile
+@@ -14,7 +14,6 @@ dtb-$(CONFIG_ARCH_ROCKCHIP) += \
+ 	rk3399-nanopi4-rev21.dtb \
+ 	rk3399-nanopi-m4v2.dtb \
+ 	rk3399-nanopi4-rev22.dtb \
+-	rk3399-hm3399.dtb \
+ 	rk3399-helios64.dtb \
+ 	rk3399-firefly.dtb \
+ 	rk3399-roc-pc.dtb
+@@ -150,7 +149,7 @@ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3399pro-evb-v11-multi-cam-avb.dtb
+ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3399pro-evb-v13-multi-cam.dtb
+ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3399pro-npu-evb-v10.dtb
+ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3399pro-npu-evb-v10-multi-cam.dtb
+-
++dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3399-hm3399.dtb
+ endif
+ 
+ always		:= $(dtb-y)
+-- 
+2.25.1
+
