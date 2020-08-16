@@ -1,0 +1,108 @@
+From 5cfd57e6f2ef3df638cc8c92d4cb372809e8c376 Mon Sep 17 00:00:00 2001
+From: Wenguo Liu <liuwenguo@gmail.com>
+Date: Sat, 15 Aug 2020 21:47:42 +0800
+Subject: [PATCH 8/9] fixed es8388 i2s issue
+
+---
+ .../arm64/boot/dts/rockchip/rk3399-hm3399.dts |  1 +
+ .../boot/dts/rockchip/rk3399-hm3399.dtsi      | 28 +++++++++++++++++--
+ 2 files changed, 26 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
+index f1731f43..8cc57520 100755
+--- a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
+@@ -54,6 +54,7 @@
+ 	};
+ 
+ 	edp_panel: edp-panel {
++		status = "disabled";
+ 		compatible ="lg,lp079qx1-sp0v";
+ 		backlight = <&backlight>;
+ 		enable-gpios = <&gpio4 RK_PC5 GPIO_ACTIVE_HIGH>;
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dtsi
+index 416d98c4..bb1e5f04 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dtsi
+@@ -262,6 +262,19 @@
+ 	status = "okay";
+ };
+ 
++/* HACK: keep MALI version on linux */
++&gpu_power_model {
++	// for DDK r14.
++	voltage = <900>;
++	frequency = <500>;
++	static-power = <300>;
++	dynamic-power = <396>;
++};
++
++&pvtm {
++	status = "okay";
++};
++
+ 
+ &display_subsystem {
+ 	status = "okay";
+@@ -415,13 +428,15 @@
+ 				regulator-always-on;
+ 				regulator-boot-on;
+ 				regulator-min-microvolt = <1800000>;
+-				regulator-max-microvolt = <3300000>;
++				regulator-max-microvolt = <3000000>;
++				regulator-init-microvolt = <3000000>;
+ 				regulator-state-mem {
+ 					regulator-on-in-suspend;
+ 					regulator-suspend-microvolt = <3000000>;
+ 				};
+ 			};
+ 
++
+ 			vcca3v0_codec: LDO_REG5 {
+ 				regulator-name = "vcca3v0_codec";
+ 				regulator-always-on;
+@@ -544,9 +559,12 @@
+ 
+ &i2s0 {
+ 	status = "okay";
++	rockchip,i2s-broken-burst-len;
++	rockchip,playback-channels = <8>;
++	rockchip,capture-channels = <8>;
++	#sound-dai-cells = <0>;
+ };
+ 
+-
+ &i2s1 {
+ 	status = "okay";
+ 	rockchip,i2s-broken-burst-len;
+@@ -555,8 +573,8 @@
+ 	#sound-dai-cells = <0>;
+ };
+ 
+-
+ &i2s2 {
++	#sound-dai-cells = <0>;
+ 	status = "okay";
+ };
+ 
+@@ -894,6 +912,8 @@
+ };
+ 
+ &vopb {
++	assigned-clocks = <&cru DCLK_VOP0_DIV>;
++	assigned-clock-parents = <&cru PLL_CPLL>;
+ 	status = "okay";
+ };
+ 
+@@ -902,6 +922,8 @@
+ };
+ 
+ &vopl {
++	assigned-clocks = <&cru DCLK_VOP0_DIV>;
++	assigned-clock-parents = <&cru PLL_CPLL>;
+ 	status = "okay";
+ };
+ 
+-- 
+2.25.1
+

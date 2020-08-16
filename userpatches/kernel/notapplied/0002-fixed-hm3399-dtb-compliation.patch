@@ -1,7 +1,7 @@
 From e5788bcbe0a82803094b94b0287a60bb2b4e0c3c Mon Sep 17 00:00:00 2001
 From: Wenguo Liu <liuwenguo@gmail.com>
 Date: Fri, 14 Aug 2020 22:13:07 +0800
-Subject: [PATCH 2/2] fixed hm3399 dtb compliation
+Subject: [PATCH 2/9] fixed hm3399 dtb compliation
 
 ---
  arch/arm64/boot/dts/rockchip/Makefile | 3 +--

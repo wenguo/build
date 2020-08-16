@@ -1,7 +1,7 @@
 From 2f61cfcb8b443145ff1d20fe338d769b412a5194 Mon Sep 17 00:00:00 2001
 From: Wenguo Liu <liuwenguo@gmail.com>
 Date: Fri, 14 Aug 2020 21:31:22 +0800
-Subject: [PATCH 1/2] added patch from andrioud
+Subject: [PATCH 1/9] added patch from andrioud
 
 ---
  arch/arm64/boot/dts/rockchip/Makefile         |    1 +

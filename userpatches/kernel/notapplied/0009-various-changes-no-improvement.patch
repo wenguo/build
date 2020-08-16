@@ -1,0 +1,428 @@
+From 191f77cff074b0e1a18eab961ad1972d5ca05908 Mon Sep 17 00:00:00 2001
+From: Wenguo Liu <liuwenguo@gmail.com>
+Date: Sat, 15 Aug 2020 22:37:26 +0800
+Subject: [PATCH 9/9] various changes, no improvement
+
+---
+ .../arm64/boot/dts/rockchip/rk3399-hm3399.dts |  35 ---
+ .../boot/dts/rockchip/rk3399-hm3399.dtsi      | 245 +++++++++++++-----
+ .../boot/dts/rockchip/rk3399-orangepi-4.dts   |   2 +
+ 3 files changed, 188 insertions(+), 94 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
+index 8cc57520..09f6424d 100755
+--- a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
+@@ -360,42 +360,7 @@
+ 	
+ };
+ 
+-&sdio0 {
+-	clock-frequency = <50000000>;
+-	clock-freq-min-max = <200000 50000000>;
+-	supports-sdio;
+-	bus-width = <4>;
+-	disable-wp;
+-	cap-sd-highspeed;
+-	cap-sdio-irq;
+-	keep-power-in-suspend;
+-	mmc-pwrseq = <&sdio_pwrseq>;
+-	non-removable;
+-	num-slots = <1>;
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&sdio0_bus4 &sdio0_cmd &sdio0_clk>;
+-	sd-uhs-sdr104;
+-	status = "okay";
+-};
+-
+ 
+-&sdmmc {
+-	clock-frequency = <150000000>;
+-	clock-freq-min-max = <100000 150000000>;
+-	bus-width = <4>;
+-	cap-sd-highspeed;
+-	cap-mmc-highspeed;
+-	cd-gpios = <&gpio0 RK_PA7 GPIO_ACTIVE_LOW>;
+-	disable-wp;
+-	num-slots = <1>;
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&sdmmc_clk &sdmmc_cmd &sdmmc0_det_l &sdmmc_bus4>;
+-//	sd-uhs-sdr104;
+-	supports-sd;
+-	vmmc-supply = <&vcc3v0_sd>;
+-	vqmmc-supply = <&vcc_sdio>;
+-	status = "okay";
+-};
+ 
+ &spdif {
+ 	status = "disable";
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dtsi
+index bb1e5f04..9b6ee342 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dtsi
+@@ -20,6 +20,31 @@
+ 		nvmem-cell-names = "id";
+ 	};
+ 
++	reserved-memory {
++		#address-cells = <2>;
++		#size-cells = <2>;
++		ranges;
++
++		drm_logo: drm-logo@00000000 {
++			compatible = "rockchip,drm-logo";
++			reg = <0x0 0x0 0x0 0x0>;
++		};
++
++		ramoops_mem: region@110000 {
++			reg = <0x0 0x110000 0x0 0xf0000>;
++			reg-names = "ramoops_mem";
++		};
++	};
++
++	ramoops: ramoops {
++		compatible = "ramoops";
++		record-size = <0x0 0x40000>;
++		console-size = <0x0 0x80000>;
++		ftrace-size = <0x0 0x00000>;
++		pmsg-size = <0x0 0x00000>;
++		memory-region = <&ramoops_mem>;
++	};
++
+ 	fiq_debugger: fiq-debugger {
+ 		status = "okay";
+ 		compatible = "rockchip,fiq-debugger";
+@@ -46,6 +71,18 @@
+ 		#clock-cells = <0>;
+ 	};
+ 
++	rga: rga@ff680000 {
++		compatible = "rockchip,rga2";
++		dev_mode = <1>;
++		reg = <0x0 0xff680000 0x0 0x1000>;
++		interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH 0>;
++		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA_CORE>;
++		clock-names = "aclk_rga", "hclk_rga", "clk_rga";
++		power-domains = <&power RK3399_PD_RGA>;
++		dma-coherent;
++		status = "okay";
++	};
++
+ 	dc_12v: dc-12v {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "dc_12v";
+@@ -71,17 +108,6 @@
+ 		};
+ 	};
+ 
+-	/* switched by pmic_sleep */
+-	vcc1v8_s3: vcca1v8_s3: vcc1v8-s3 {
+-		compatible = "regulator-fixed";
+-		regulator-name = "vcc1v8_s3";
+-		regulator-always-on;
+-		regulator-boot-on;
+-		regulator-min-microvolt = <1800000>;
+-		regulator-max-microvolt = <1800000>;
+-		vin-supply = <&vcc_1v8>;
+-	};
+-
+ 	vcc3v0_sd: vcc3v0-sd {
+ 		compatible = "regulator-fixed";
+ 		enable-active-high;
+@@ -139,17 +165,29 @@
+ 		rockchip,pwm_id= <2>;
+ 		rockchip,pwm_voltage = <900000>;
+ 	};
+-	
++
+ 	5v_power_en {
+ 		compatible = "5v_en";
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&pwr4g_pin &rst4g_pin>;
+-		hub_rst = <&gpio4 RK_PD5 GPIO_ACTIVE_LOW>;
+-		pwr_led_en = <&gpio1 RK_PA0 GPIO_ACTIVE_LOW>;
+-		pwr_en_4g = <&gpio1 RK_PD0 GPIO_ACTIVE_HIGH>;//gpio1_d0
+-		rst_4g = <&gpio4 RK_PD4 GPIO_ACTIVE_HIGH>;//gpio4_d4
++		//hub_rst = <&gpio4 GPIO_D0 GPIO_ACTIVE_LOW>;
++		//pwr_led_en = <&gpio7 GPIO_B4 GPIO_ACTIVE_LOW>;
++		pwr_en_4g = <&gpio1 24 GPIO_ACTIVE_HIGH>;//gpio1_d0
++		rst_4g = <&gpio4 28 GPIO_ACTIVE_HIGH>;//gpio4_d4
+ 		status = "okay";
+ 	};
++
++	vcc3v3_pcie: vcc3v3-pcie-regulator {
++		compatible = "regulator-fixed";
++		enable-active-high;
++		regulator-always-on;
++		regulator-boot-on;
++	//	gpio = <&gpio1 18 GPIO_ACTIVE_HIGH>;
++	//	pinctrl-names = "default";
++	//	pinctrl-0 = <&pcie_drv>;
++		regulator-name = "vcc3v3_pcie";
++	};
++	
+ };
+ 
+ &cpu_l0 {
+@@ -177,10 +215,6 @@
+ };
+ 
+ 
+-&dfi {
+-	status = "okay";
+-};
+-
+ &dmc {
+ 	status = "disabled";
+ 	center-supply = <&vdd_center>;
+@@ -188,53 +222,83 @@
+ 	downdifferential = <20>;
+ 	system-status-freq = <
+ 		/*system status         freq(KHz)*/
+-		SYS_STATUS_NORMAL       856000
+-		SYS_STATUS_REBOOT       416000
+-		SYS_STATUS_SUSPEND      416000
+-		SYS_STATUS_VIDEO_1080P  416000
+-		SYS_STATUS_VIDEO_4K     856000
+-		SYS_STATUS_VIDEO_4K_10B 856000
+-		SYS_STATUS_PERFORMANCE  856000
+-		SYS_STATUS_BOOST        416000
+-		SYS_STATUS_DUALVIEW     856000
+-		SYS_STATUS_ISP          856000
++		SYS_STATUS_NORMAL       800000
++		SYS_STATUS_REBOOT       528000
++		SYS_STATUS_SUSPEND      200000
++		SYS_STATUS_VIDEO_1080P  200000
++		SYS_STATUS_VIDEO_4K     600000
++		SYS_STATUS_VIDEO_4K_10B 800000
++		SYS_STATUS_PERFORMANCE  800000
++		SYS_STATUS_BOOST        400000
++		SYS_STATUS_DUALVIEW     600000
++		SYS_STATUS_ISP          600000
+ 	>;
+ 	vop-bw-dmc-freq = <
+ 	/* min_bw(MB/s) max_bw(MB/s) freq(KHz) */
+-		0       1893     416000
+-		1894    99999    856000
++		0       762      200000
++		763     1893     400000
++		1894    3012     528000
++		3013    99999    800000
+ 	>;
+-	auto-min-freq = <416000>;
++	auto-min-freq = <200000>;
+ };
+ 
++
++
+ &dmc_opp_table {
+ 	compatible = "operating-points-v2";
+ 
+-	/delete-node/ opp-200000000;
+-	/delete-node/ opp-300000000;
+-	/delete-node/ opp-400000000;
+-	/delete-node/ opp-528000000;
+-	/delete-node/ opp-600000000;
+-	/delete-node/ opp-800000000;
+-
+-	opp-328000000 {
+-		opp-hz = /bits/ 64 <328000000>;
++	opp-200000000 {
++		opp-hz = /bits/ 64 <200000000>;
+ 		opp-microvolt = <900000>;
++		status = "disabled";
++	};
++	opp-300000000 {
++		opp-hz = /bits/ 64 <300000000>;
++		opp-microvolt = <900000>;
++		status = "disabled";
++	};
++	opp-400000000 {
++		opp-hz = /bits/ 64 <400000000>;
++		opp-microvolt = <900000>;
++		status = "disabled";
+ 	};
+ 	opp-416000000 {
+ 		opp-hz = /bits/ 64 <416000000>;
+ 		opp-microvolt = <900000>;
+ 	};
+-	opp-666000000 {
+-		opp-hz = /bits/ 64 <666000000>;
++	opp-528000000 {
++		opp-hz = /bits/ 64 <528000000>;
+ 		opp-microvolt = <900000>;
++		status = "disabled";
++	};
++	opp-600000000 {
++		opp-hz = /bits/ 64 <600000000>;
++		opp-microvolt = <900000>;
++		status = "disabled";
++	};
++	opp-800000000 {
++		opp-hz = /bits/ 64 <800000000>;
++		opp-microvolt = <900000>;
++		status = "disabled";
+ 	};
+ 	opp-856000000 {
+ 		opp-hz = /bits/ 64 <856000000>;
+ 		opp-microvolt = <900000>;
+ 	};
++	opp-928000000 {
++		opp-hz = /bits/ 64 <928000000>;
++		opp-microvolt = <900000>;
++		status = "disabled";
++	};
++	opp-1056000000 {
++		opp-hz = /bits/ 64 <1056000000>;
++		opp-microvolt = <900000>;
++		status = "disabled";
++	};
+ };
+ 
++
+ &gmac {
+ 	assigned-clocks = <&cru SCLK_RMII_SRC>;
+ 	assigned-clock-parents = <&clkin_gmac>;
+@@ -278,11 +342,47 @@
+ 
+ &display_subsystem {
+ 	status = "okay";
+-};
+ 
+-&route_dsi {
+-	status = "disable";
+-	logo,mode = "center";
++	ports = <&vopb_out>, <&vopl_out>;
++	logo-memory-region = <&drm_logo>;
++
++	route {
++		route_hdmi: route-hdmi {
++			status = "okay";
++			logo,uboot = "logo.bmp";
++			logo,kernel = "logo_kernel.bmp";
++			logo,mode = "center";
++			charge_logo,mode = "center";
++			connect = <&vopb_out_hdmi>;
++		};
++
++		route_dsi: route-dsi {
++			status = "disabled";
++			logo,uboot = "logo.bmp";
++			logo,kernel = "logo_kernel.bmp";
++			logo,mode = "center";
++			charge_logo,mode = "center";
++			connect = <&vopb_out_dsi>;
++		};
++
++		route_dsi1: route-dsi1 {
++			status = "disabled";
++			logo,uboot = "logo.bmp";
++			logo,kernel = "logo_kernel.bmp";
++			logo,mode = "center";
++			charge_logo,mode = "center";
++			connect = <&vopl_out_dsi1>;
++		};
++
++		route_edp: route-edp {
++			status = "disabled";
++			logo,uboot = "logo.bmp";
++			logo,kernel = "logo_kernel.bmp";
++			logo,mode = "center";
++			charge_logo,mode = "center";
++			connect = <&vopb_out_edp>;
++		};
++	};
+ };
+ 
+ &cdn_dp {
+@@ -303,12 +403,6 @@
+ 	rockchip,defaultmode = <16>; /* CEA 1920x1080@60Hz */
+ };
+ 
+-
+-&route_hdmi {
+-	status = "okay";
+-	logo,mode = "center";
+-};
+-
+ &i2c0 {
+ 	clock-frequency = <400000>;
+ 	i2c-scl-rising-time-ns = <160>;
+@@ -672,6 +766,15 @@
+ 				<4 RK_PC6 2 &pcfg_pull_none>;
+ 		};
+ 	};
++
++	/*
++    pcie {
++		pcie_drv: pcie-drv {
++			rockchip,pins =
++				<1 18 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};*/
++
+ };
+ 
+ &pwm0 {
+@@ -780,16 +883,40 @@
+ 	status = "okay";
+ };
+ 
+-&sdmmc {
+-	broken-cd;
++&sdio0 {
++	clock-frequency = <50000000>;
++	clock-freq-min-max = <200000 50000000>;
++	supports-sdio;
+ 	bus-width = <4>;
+-	cap-mmc-highspeed;
++	disable-wp;
+ 	cap-sd-highspeed;
++	cap-sdio-irq;
++	keep-power-in-suspend;
++	mmc-pwrseq = <&sdio_pwrseq>;
++	non-removable;
++	num-slots = <1>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&sdio0_bus4 &sdio0_cmd &sdio0_clk>;
++	sd-uhs-sdr104;
++	vmmc-supply = <&vcc3v0_sd>;
++	vqmmc-supply = <&vcc_sdio>;
++	status = "okay";
++};
++
++
++&sdmmc {
+ 	clock-frequency = <150000000>;
++	clock-freq-min-max = <100000 150000000>;
++	bus-width = <4>;
++	cap-sd-highspeed;
++	cap-mmc-highspeed;
++	cd-gpios = <&gpio0 RK_PA7 GPIO_ACTIVE_LOW>;
+ 	disable-wp;
+-	max-frequency = <150000000>;
++	num-slots = <1>;
+ 	pinctrl-names = "default";
+-	pinctrl-0 = <&sdmmc_clk &sdmmc_cmd &sdmmc_cd &sdmmc_bus4>;
++	pinctrl-0 = <&sdmmc_clk &sdmmc_cmd &sdmmc0_det_l &sdmmc_bus4>;
++//	sd-uhs-sdr104;
++	supports-sd;
+ 	vmmc-supply = <&vcc3v0_sd>;
+ 	vqmmc-supply = <&vcc_sdio>;
+ 	status = "okay";
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-orangepi-4.dts b/arch/arm64/boot/dts/rockchip/rk3399-orangepi-4.dts
+index 6ba30308..a7d9ee3e 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399-orangepi-4.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3399-orangepi-4.dts
+@@ -1002,6 +1002,8 @@
+ 	num-slots = <1>;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&sdio0_bus4 &sdio0_cmd &sdio0_clk>;
++	vmmc-supply = <&vcc3v0_sd>;
++	vqmmc-supply = <&vcc_sdio>;
+ 	sd-uhs-sdr104;
+ 	status = "okay";
+ };
+-- 
+2.25.1
+
