@@ -1,0 +1,90 @@
+diff --git a/Makefile b/Makefile
+index 9ca1a4e0..aa3b8aa1 100644
+--- a/Makefile
++++ b/Makefile
+@@ -377,9 +377,17 @@ CHECK		= sparse
+ 
+ # Use the wrapper for the compiler. This wrapper scans for new
+ # warnings and causes the build to stop upon encountering them.
++ifeq ("$(origin GCC_WRAPPER)", "command line")
++  KGCC_WRAPPER = $(GCC_WRAPPER)
++endif
++ifndef KGCC_WRAPPER
++  KGCC_WRAPPER = 0
++endif
++ifeq ($(KGCC_WRAPPER),1)
+ ifneq ($(wildcard $(srctree)/scripts/gcc-wrapper.py),)
+ CC		= $(srctree)/scripts/gcc-wrapper.py $(CROSS_COMPILE)gcc
+ endif
++endif
+ 
+ CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
+ 		  -Wbitwise -Wno-return-void $(CF)
+@@ -755,7 +763,6 @@ ifeq ($(cc-name),clang)
+ KBUILD_CPPFLAGS += $(call cc-option,-Qunused-arguments,)
+ KBUILD_CFLAGS += $(call cc-disable-warning, format-invalid-specifier)
+ KBUILD_CFLAGS += $(call cc-disable-warning, gnu)
+-KBUILD_CFLAGS += $(call cc-disable-warning, duplicate-decl-specifier)
+ # Quiet clang warning: comparison of unsigned expression < 0 is always false
+ KBUILD_CFLAGS += $(call cc-disable-warning, tautological-compare)
+ # CLANG uses a _MergedGlobals as optimization, but this breaks modpost, as the
+@@ -866,6 +873,12 @@ KBUILD_CFLAGS   += $(call cc-option,-Werror=strict-prototypes)
+ # Prohibit date/time macros, which would make the build non-deterministic
+ KBUILD_CFLAGS   += $(call cc-option,-Werror=date-time)
+ 
++# ensure -fcf-protection is disabled when using retpoline as it is
++# incompatible with -mindirect-branch=thunk-extern
++ifdef CONFIG_RETPOLINE
++KBUILD_CFLAGS += $(call cc-option,-fcf-protection=none)
++endif
++
+ # use the deterministic mode of AR if available
+ KBUILD_ARFLAGS := $(call ar-option,D)
+ 
+@@ -1461,9 +1474,6 @@ else # KBUILD_EXTMOD
+ 
+ # We are always building modules
+ KBUILD_MODULES := 1
+-PHONY += crmodverdir
+-crmodverdir:
+-	$(cmd_crmodverdir)
+ 
+ PHONY += $(objtree)/Module.symvers
+ $(objtree)/Module.symvers:
+@@ -1475,7 +1485,7 @@ $(objtree)/Module.symvers:
+ 
+ module-dirs := $(addprefix _module_,$(KBUILD_EXTMOD))
+ PHONY += $(module-dirs) modules
+-$(module-dirs): crmodverdir $(objtree)/Module.symvers
++$(module-dirs): prepare $(objtree)/Module.symvers
+ 	$(Q)$(MAKE) $(build)=$(patsubst _module_%,%,$@)
+ 
+ modules: $(module-dirs)
+@@ -1515,7 +1525,8 @@ help:
+ 
+ # Dummies...
+ PHONY += prepare scripts
+-prepare: ;
++prepare:
++	$(cmd_crmodverdir)
+ scripts: ;
+ endif # KBUILD_EXTMOD
+ 
+@@ -1640,17 +1651,14 @@ endif
+ 
+ # Modules
+ /: prepare scripts FORCE
+-	$(cmd_crmodverdir)
+ 	$(Q)$(MAKE) KBUILD_MODULES=$(if $(CONFIG_MODULES),1) \
+ 	$(build)=$(build-dir)
+ # Make sure the latest headers are built for Documentation
+ Documentation/: headers_install
+ %/: prepare scripts FORCE
+-	$(cmd_crmodverdir)
+ 	$(Q)$(MAKE) KBUILD_MODULES=$(if $(CONFIG_MODULES),1) \
+ 	$(build)=$(build-dir)
+ %.ko: prepare scripts FORCE
+-	$(cmd_crmodverdir)
+ 	$(Q)$(MAKE) KBUILD_MODULES=$(if $(CONFIG_MODULES),1)   \
+ 	$(build)=$(build-dir) $(@:.ko=.o)
+ 	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.modpost

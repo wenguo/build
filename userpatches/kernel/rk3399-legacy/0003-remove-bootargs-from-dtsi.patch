@@ -1,0 +1,28 @@
+From afb8b0017fef68bb0971431f4e9eeb02a39e386e Mon Sep 17 00:00:00 2001
+From: Wenguo Liu <liuwenguo@gmail.com>
+Date: Mon, 17 Aug 2020 11:52:05 +0800
+Subject: [PATCH 3/3] remove bootargs from dtsi
+
+---
+ arch/arm64/boot/dts/rockchip/hm3399_v2r0-linux.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/hm3399_v2r0-linux.dtsi b/arch/arm64/boot/dts/rockchip/hm3399_v2r0-linux.dtsi
+index 955c3aeb..deb7e4d2 100755
+--- a/arch/arm64/boot/dts/rockchip/hm3399_v2r0-linux.dtsi
++++ b/arch/arm64/boot/dts/rockchip/hm3399_v2r0-linux.dtsi
+@@ -46,9 +46,9 @@
+ / {
+ 	compatible = "rockchip,linux", "rockchip,rk3399";
+ 
+-	chosen {
++	/*chosen {
+ 		bootargs = "earlycon=uart8250,mmio32,0xff1a0000 swiotlb=1 console=ttyFIQ0 rw root=PARTUUID=614e0000-0000 rootfstype=ext4 rootwait coherent_pool=1m";
+-	};
++	};*/
+ 
+ 	reserved-memory {
+ 		#address-cells = <2>;
+-- 
+2.25.1
+
