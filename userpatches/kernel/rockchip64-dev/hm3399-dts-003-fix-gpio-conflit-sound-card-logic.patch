@@ -137,7 +137,7 @@ index 41e8767a9..9d4a64036 100644
 -	i2s1 {
 +	i2s0 {
  		i2s_8ch_mclk: i2s-8ch-mclk {
- 			rockchip,pins = <4 RK_PA0 RK_FUNC_1 &pcfg_pull_none>;
+ 			rockchip,pins = <4 RK_PA0 1 &pcfg_pull_none>;
  		};
 @@ -285,5 +319,9 @@ &sdio0 {
  };
