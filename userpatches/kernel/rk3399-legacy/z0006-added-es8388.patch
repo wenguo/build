@@ -1,0 +1,78 @@
+From 091d1fd85fcc1a07828be30d0e32f6768bf40e63 Mon Sep 17 00:00:00 2001
+From: Wenguo Liu <liuwenguo@gmail.com>
+Date: Sat, 15 Aug 2020 16:28:03 +0800
+Subject: [PATCH 6/9] added es8388
+
+---
+ .../arm64/boot/dts/rockchip/rk3399-hm3399.dts | 36 +++++--------------
+ 1 file changed, 9 insertions(+), 27 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
+index 4bf9371d..f1731f43 100755
+--- a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
+@@ -68,31 +68,12 @@
+ 		};
+ 	};
+ 
+-	es8388_sound {
++	es8388_sound{
+ 		status = "okay";
+ 		compatible = "simple-audio-card";
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&hpdet_int>;
+-
+-		simple-audio-card,name = "rockchip,es8388-codec";
+ 		simple-audio-card,format = "i2s";
++		simple-audio-card,name = "rockchip,es8388-codec";
+ 		simple-audio-card,mclk-fs = <256>;
+-		
+-		simple-audio-card,hp-det-gpio =  <&gpio4 RK_PD0 GPIO_ACTIVE_HIGH>;//insert=GPIO_ACTIVE_HIGH  
+-		
+-		simple-audio-card,widgets =
+-			"Microphone", "Mic Jack",
+-			"Headphone", "Headphone Jack",
+-			"Speaker", "External Speaker";
+-		simple-audio-card,routing =
+-			"Mic Jack", "Mic Bias",
+-			"LINPUT1", "Mic Jack",
+-			"RINPUT1", "Mic Jack",
+-			"Headphone Jack", "LOUT2",
+-			"Headphone Jack", "ROUT2",
+-			"External Speaker", "LOUT1",
+-			"External Speaker", "ROUT1";
+-			
+ 		simple-audio-card,cpu {
+ 			sound-dai = <&i2s0>;
+ 			system-clock-frequency = <11289600>;
+@@ -232,20 +213,21 @@
+ };
+ 
+ &i2c1 {
++	status = "okay";
+ 	i2c-scl-rising-time-ns = <300>;
+ 	i2c-scl-falling-time-ns = <15>;
+-	status = "okay";
+ 
+ 	es8388: es8388@10 {
+ 		#sound-dai-cells = <0>;
+-		compatible = "everest,es8388", "everest,es8328";
++		compatible = "everest,es8388";
+ 		reg = <0x10>;
+ 		clocks = <&cru SCLK_I2S_8CH_OUT>;
+ 		clock-names = "mclk";
+-		AVDD-supply = <&vcca3v0_codec>;
+-		DVDD-supply = <&vcca3v0_codec>;
+-		HPVDD-supply = <&vcca3v0_codec>;
+-		PVDD-supply = <&vcca3v0_codec>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&i2s_8ch_mclk &hpdet_int>;
++    	        //pinctrl-0 = <&i2s_8ch_mclk>;
++		spk-con-gpio = <&gpio1 1 GPIO_ACTIVE_LOW>;
++		hp-det-gpio = <&gpio4 24 GPIO_ACTIVE_HIGH>;//insert=GPIO_ACTIVE_HIGH  
+ 
+ 		status = "okay";
+ 	};
+-- 
+2.25.1
+
