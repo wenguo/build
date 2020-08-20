@@ -1,0 +1,28 @@
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
+index afdfea0cc..30474b35d 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dts
+@@ -273,7 +273,7 @@ &pcie0 {
+ &pinctrl {
+ 	sdio-pwrseq {
+ 		wifi_enable_h: wifi-enable-h {
+-			rockchip,pins = <0 RK_PB2 RK_FUNC_GPIO &pcfg_pull_none>;
++			rockchip,pins = <2 RK_PD3 RK_FUNC_GPIO &pcfg_pull_none>;
+ 		};
+ 	};
+ 
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dtsi
+index 001ed359e..08eb43b58 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399-hm3399.dtsi
+@@ -135,8 +135,8 @@ vdd_log: vdd-log {
+ 		compatible = "5v_en";
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&pwr4g_pin &rst4g_pin>;
+-		hub_rst = <&gpio4 RK_PD5 GPIO_ACTIVE_LOW>;
+-		pwr_led_en = <&gpio1 RK_PA0 GPIO_ACTIVE_LOW>;
++		//hub_rst = <&gpio4 RK_PD5 GPIO_ACTIVE_LOW>;
++		//pwr_led_en = <&gpio1 RK_PA0 GPIO_ACTIVE_LOW>;
+ 		pwr_en_4g = <&gpio1 RK_PD0 GPIO_ACTIVE_HIGH>;//gpio1_d0
+ 		rst_4g = <&gpio4 RK_PD4 GPIO_ACTIVE_HIGH>;//gpio4_d4
+ 		status = "okay";
