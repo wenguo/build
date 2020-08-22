@@ -179,15 +179,6 @@ index 99e151475..9c26e6168 100644
  source "drivers/misc/c2port/Kconfig"
  source "drivers/misc/eeprom/Kconfig"
  source "drivers/misc/cb710/Kconfig"
-diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
-index 9abf2923d..89701b6ed 100644
---- a/drivers/misc/Makefile
-+++ b/drivers/misc/Makefile
-@@ -58,3 +58,4 @@ obj-$(CONFIG_PVPANIC)   	+= pvpanic.o
- obj-$(CONFIG_HABANA_AI)		+= habanalabs/
- obj-$(CONFIG_UACCE)		+= uacce/
- obj-$(CONFIG_XILINX_SDFEC)	+= xilinx_sdfec.o
-+obj-$(CONFIG_5V_EN)	+= 5v_en.o
 diff --git a/drivers/spi/Kconfig b/drivers/spi/Kconfig
 index 741b91409..55847cc3e 100644
 --- a/drivers/spi/Kconfig
@@ -209,13 +200,13 @@ index 741b91409..55847cc3e 100644
  # Add new SPI master controllers in alphabetical order above this line
  #
 diff --git a/drivers/spi/Makefile b/drivers/spi/Makefile
-index 28f601327..468c925de 100644
+index d2e41d3d4..fac197ff4 100644
 --- a/drivers/spi/Makefile
 +++ b/drivers/spi/Makefile
-@@ -127,6 +127,7 @@ obj-$(CONFIG_SPI_XLP)			+= spi-xlp.o
- obj-$(CONFIG_SPI_XTENSA_XTFPGA)		+= spi-xtensa-xtfpga.o
+@@ -129,6 +129,7 @@ obj-$(CONFIG_SPI_XTENSA_XTFPGA)		+= spi-xtensa-xtfpga.o
  obj-$(CONFIG_SPI_ZYNQ_QSPI)		+= spi-zynq-qspi.o
  obj-$(CONFIG_SPI_ZYNQMP_GQSPI)		+= spi-zynqmp-gqspi.o
+ obj-$(CONFIG_SPI_AMD)			+= spi-amd.o
 +obj-$(CONFIG_SPI_WK2XXX)            += wk2xxx_spi.o
  
  # SPI slave protocol handlers

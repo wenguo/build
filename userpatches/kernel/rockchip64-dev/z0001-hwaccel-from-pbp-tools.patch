@@ -1734,18 +1734,6 @@ index 3d027c84f..28a4e3374 100644
  		case V4L2_PIX_FMT_HEVC:		descr = "HEVC"; break; /* aka H.265 */
  		case V4L2_PIX_FMT_HEVC_SLICE:	descr = "HEVC Parsed Slice Data"; break;
  		case V4L2_PIX_FMT_FWHT:		descr = "FWHT"; break; /* used in vicodec */
-diff --git a/drivers/spi/Makefile b/drivers/spi/Makefile
-index d2e41d3d4..fac197ff4 100644
---- a/drivers/spi/Makefile
-+++ b/drivers/spi/Makefile
-@@ -129,6 +129,7 @@ obj-$(CONFIG_SPI_XTENSA_XTFPGA)		+= spi-xtensa-xtfpga.o
- obj-$(CONFIG_SPI_ZYNQ_QSPI)		+= spi-zynq-qspi.o
- obj-$(CONFIG_SPI_ZYNQMP_GQSPI)		+= spi-zynqmp-gqspi.o
- obj-$(CONFIG_SPI_AMD)			+= spi-amd.o
-+obj-$(CONFIG_SPI_WK2XXX)            += wk2xxx_spi.o
- 
- # SPI slave protocol handlers
- obj-$(CONFIG_SPI_SLAVE_TIME)		+= spi-slave-time.o
 diff --git a/drivers/staging/media/rkvdec/Makefile b/drivers/staging/media/rkvdec/Makefile
 index c08fed0a3..a77122641 100644
 --- a/drivers/staging/media/rkvdec/Makefile

@@ -1,0 +1,28 @@
+diff --git a/sound/soc/rockchip/rockchip_i2s.c b/sound/soc/rockchip/rockchip_i2s.c
+index 11ab03745..b6b809ec5 100644
+--- a/sound/soc/rockchip/rockchip_i2s.c
++++ b/sound/soc/rockchip/rockchip_i2s.c
+@@ -449,8 +449,6 @@ static int rockchip_i2s_set_sysclk(struct snd_soc_dai *cpu_dai, int clk_id,
+ 	int ret;
+ 
+ 	ret = clk_set_rate(i2s->mclk, freq);
+-	if (ret)
+-		dev_err(i2s->dev, "Fail to set mclk %d %d\n", ret, freq);
+ 
+ 	return ret;
+ }
+diff --git a/sound/soc/soc-dai.c b/sound/soc/soc-dai.c
+index 457159975..0b736e1f4 100644
+--- a/sound/soc/soc-dai.c
++++ b/sound/soc/soc-dai.c
+@@ -24,9 +24,7 @@ static inline int _soc_dai_ret(struct snd_soc_dai *dai,
+ 	case -ENOTSUPP:
+ 		break;
+ 	default:
+-		dev_err(dai->dev,
+-			"ASoC: error at %s on %s: %d\n",
+-			func, dai->name, ret);
++		;
+ 	}
+ 
+ 	return ret;
