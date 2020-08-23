@@ -1,0 +1,105 @@
+diff --git a/common/splash.c b/common/splash.c
+index 741cd989..7eabd180 100644
+--- a/common/splash.c
++++ b/common/splash.c
+@@ -61,10 +61,12 @@ static int splash_video_logo_load(void)
+ 	char *splashimage;
+ 	ulong bmp_load_addr;
+ 
++	printf("splash_video_logo_load 0\n");
+ 	splashimage = env_get("splashimage");
+ 	if (!splashimage)
+ 		return -ENOENT;
+ 
++	printf("splash_video_logo_load 1\n");
+ 	bmp_load_addr = simple_strtoul(splashimage, 0, 16);
+ 	if (!bmp_load_addr) {
+ 		printf("Error: bad 'splashimage' address\n");
+@@ -74,6 +76,7 @@ static int splash_video_logo_load(void)
+ 	memcpy((void *)bmp_load_addr, bmp_logo_bitmap,
+ 	       ARRAY_SIZE(bmp_logo_bitmap));
+ 
++	printf("splash_video_logo_load 2\n");
+ 	return 0;
+ }
+ #else
+@@ -82,10 +85,11 @@ static inline int splash_video_logo_load(void) { return -ENOSYS; }
+ 
+ __weak int splash_screen_prepare(void)
+ {
+-	if (CONFIG_IS_ENABLED(SPLASH_SOURCE))
++	printf("splash_screen_prepare 0\n");
++	if (1/*CONFIG_IS_ENABLED(SPLASH_SOURCE)*/)
+ 		return splash_source_load(default_splash_locations,
+ 					  ARRAY_SIZE(default_splash_locations));
+-
++	printf("splash_screen_prepare 1\n");
+ 	return splash_video_logo_load();
+ }
+ 
+@@ -157,7 +161,7 @@ int splash_display(void)
+ 	ulong addr;
+ 	char *s;
+ 	int x = 0, y = 0, ret;
+-	printf("splash_display\n");
++	printf("splash_display 0\n");
+ 
+ 	s = env_get("splashimage");
+ 	if (!s)
+@@ -165,10 +169,11 @@ int splash_display(void)
+ 
+ 	addr = simple_strtoul(s, NULL, 16);
+ 	ret = splash_screen_prepare();
+-	printf("splash_screen_prepare %d\n", ret);
++	printf("splash_screen_prepare 1: %d\n", ret);
+ 	if (ret)
+ 		return ret;
+ 
++	printf("splash_display 2\n");
+ 	splash_get_pos(&x, &y);
+ 
+ 	ret = bmp_display(addr, x, y);
+@@ -177,6 +182,7 @@ int splash_display(void)
+ 	if (x || y)
+ 		goto end;
+ 
++	printf("splash_display 3\n");
+ #if defined(CONFIG_DM_VIDEO) && !defined(CONFIG_HIDE_LOGO_VERSION)
+ 	splash_display_banner();
+ #endif
+diff --git a/common/splash_source.c b/common/splash_source.c
+index f51ca5dd..b9c27793 100644
+--- a/common/splash_source.c
++++ b/common/splash_source.c
+@@ -409,20 +409,22 @@ int splash_source_load(struct splash_location *locations, uint size)
+ 	char *env_splashimage_value;
+ 	u32 bmp_load_addr;
+ 
++	printf("splash_source_load 0\n");
+ 	env_splashimage_value = env_get("splashimage");
+ 	if (env_splashimage_value == NULL)
+ 		return -ENOENT;
+ 
++	printf("splash_source_load 1\n");
+ 	bmp_load_addr = simple_strtoul(env_splashimage_value, 0, 16);
+ 	if (bmp_load_addr == 0) {
+ 		printf("Error: bad splashimage address specified\n");
+ 		return -EFAULT;
+ 	}
+-
++	printf("splash_source_load 2\n");
+ 	splash_location = select_splash_location(locations, size);
+ 	if (!splash_location)
+ 		return -EINVAL;
+-
++	printf("splash_source_load 3\n");
+ 	if (splash_location->flags == SPLASH_STORAGE_RAW)
+ 		return splash_load_raw(splash_location, bmp_load_addr);
+ 	else if (splash_location->flags == SPLASH_STORAGE_FS)
+@@ -431,5 +433,6 @@ int splash_source_load(struct splash_location *locations, uint size)
+ 	else if (splash_location->flags == SPLASH_STORAGE_FIT)
+ 		return splash_load_fit(splash_location, bmp_load_addr);
+ #endif
++	printf("splash_source_load 4\n");
+ 	return -EINVAL;
+ }
